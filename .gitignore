@@ -1,0 +1,10 @@
+venv/
+
+chroma.db/
+
+.env
+
+data/*
+!data/.gitkeep
+
+.idea
