@@ -27,27 +27,34 @@ system_message = """
 
 st.title("Ben Thompson's Stratechery Chatbot")
 
-if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-3.5-turbo"
-
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": system_message}]
+
+# SIDEBAR
+with st.sidebar:
+    gpt_model = st.selectbox('Select a Model',
+                             ('gpt-3.5-turbo','gpt-4-turbo-preview')
+                             )
+
+
+# CHATBOT
 
 for message in st.session_state.messages:
     if message['role'] != 'system':
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-if prompt := st.chat_input("What does Ben think about the Apple Vision Pro?"):
+if prompt := st.chat_input(placeholder="What does Ben think about the Apple Vision Pro?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        stream = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages],
-            stream=True,
-        )
+        with st.spinner(""):
+            stream = client.chat.completions.create(
+                model=gpt_model,
+                messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages],
+                stream=True,
+            )
         response = st.write_stream(stream)
     st.session_state.messages.append({"role": "assistant", "content": response})
