@@ -5,6 +5,7 @@ import dotenv
 import warnings
 import urllib.parse
 import feedparser
+import json
 from pprint import pprint
 import chromadb.utils.embedding_functions as embedding_functions
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
@@ -14,6 +15,7 @@ warnings.filterwarnings("ignore")
 dotenv.load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 STRATECHERY_RSS_ID = os.getenv('STRATECHERY_RSS_ID')
+STRATECHERY_ACCESS_TOKEN = os.getenv('STRATECHERY_ACCESS_TOKEN')
 
 chroma_client = chromadb.PersistentClient('./chroma.db')
 
@@ -27,18 +29,30 @@ def get_articles_from_rss(rss_feed_url):
         subscriber_url = entry.link
         article_title = entry.title
         article_date = entry.published
-        articles.append({'public_url': article_url, 'subscriber_url': subscriber_url, 'title': article_title, 'date': article_date})
+        articles.append({'public_url': article_url,
+                         'subscriber_url': subscriber_url,
+                         'title': article_title,
+                         'date': article_date
+                         })
 
     return articles
 
 
-def get_article_as_markdown(article_url, save_path=None):
+def get_article_as_markdown(article_url, article_title=None, save_path=None):
     """Converts a given article url to markdown and save it to the ./data folder"""
-    response = requests.get(f'https://urltomarkdown.herokuapp.com/?url={article_url}&title=true')
+    encoded_url = urllib.parse.quote(article_url)
+    response = requests.get(f'https://urltomarkdown.herokuapp.com/?url={encoded_url}&title=true')
     if response.status_code == 200:
 
-        article_title = urllib.parse.unquote(response.headers['X-Title']).split('–')[0].strip()
+        pprint(article_title)
+        if article_title == 'An Interview with Arm CEO Rene Haas':
+            pprint(encoded_url)
+            pprint(response.text[:200] + "...")
+
         article_markdown = response.text
+
+        if article_title is None:
+            article_title = urllib.parse.unquote(response.headers['X-Title']).split('–')[0].strip()
 
         if save_path:
             with open(f'{save_path}/{article_title}.md', 'w') as f:
@@ -79,23 +93,45 @@ def embed_and_save_in_chroma(chunk_id, article_chunk, article_url, article_title
     return collection.get("id1", include=["metadatas", "embeddings", "documents"])
 
 
-def embed_and_save_latest_rss():
-    list_of_articles = get_articles_from_rss(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}')
+def save_latest_rss_as_json(rss_feed_url, file_name):
+    """Saves the latest RSS feed as a JSON file"""
+    list_of_articles = get_articles_from_rss(rss_feed_url)
+    article_json = []
     for article in list_of_articles:
-        print(f"Chunking {article['title']}")
+        markdown_of_article = get_article_as_markdown(article['subscriber_url'], article['title'], './data')
+        article_json.append({'title': article['title'],
+                             'public_url': article['public_url'],
+                             'publish_date': article['date'],
+                             'file_location': f'./data/{article["title"]}.md',
+                             })
+    with open(file_name, 'w') as file:
+        json.dump(article_json, file)
 
-        list_of_chunks = split_article_into_chunks(
-            get_article_as_markdown(article['subscriber_url'], './data'),
-            article['title']
-        )
+    return article_json
 
-        for article_chunk in list_of_chunks:
-            print(f"   Embedding and Saving {article_chunk['chunk_id']}")
-            embed_and_save_in_chroma(
-                article_chunk['chunk_id'],
-                article_chunk['page_content'],
-                article['public_url'],
-                article['title'],
-                article['date']
-            )
 
+def chunk_and_embed_articles_from_json(file_name):
+    """Chunks and embeds the articles in the given JSON file to Chroma"""
+    with open(file_name, 'r') as file:
+        articles = json.load(file)
+
+    for article in articles:
+        print(f"ARTICLE {articles.index(article)}/{len(articles)} - {article['title']}")
+        with open(article['file_location'], 'r') as file:
+            markdown_content = file.read()
+        chunks = split_article_into_chunks(markdown_content, article['title'])
+        for chunk in chunks:
+            print(f"({chunk['chunk_id'].split('_')[0]}/{len(chunks)-1}) {article['title']} - {chunk['page_content'][:50]}...")
+            embed_and_save_in_chroma(chunk['chunk_id'],
+                                     chunk['page_content'],
+                                     article['public_url'],
+                                     article['title'],
+                                     article['publish_date']
+                                     )
+    print("Done!")
+
+
+# save_latest_rss_as_json(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
+#                        'data.json')
+
+#chunk_and_embed_articles_from_json('data.json')
