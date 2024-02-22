@@ -38,9 +38,25 @@ def get_articles_from_rss(rss_feed_url):
     return articles
 
 
-def get_article_as_markdown(article_url, article_title=None, save_path=None):
+def save_latest_rss_as_json(rss_feed_url, json_file_name):
+    """Saves the latest RSS feed as a JSON file"""
+    list_of_articles = get_articles_from_rss(rss_feed_url)
+    article_json = []
+    for article in list_of_articles:
+        article_json.append({'title': article['title'],
+                             'public_url': article['public_url'],
+                             'publish_date': article['date'],
+                             'file_location': f'./data/{article["title"]}.md',
+                             })
+    with open(json_file_name, 'w') as file:
+        json.dump(article_json, file)
+
+    return article_json
+
+
+def get_article_as_markdown(article_url, access_token, article_title=None, save_path=None):
     """Converts a given article url to markdown and save it to the ./data folder"""
-    encoded_url = urllib.parse.quote(article_url)
+    encoded_url = urllib.parse.quote(article_url + f'?access_token={access_token}')
     response = requests.get(f'https://urltomarkdown.herokuapp.com/?url={encoded_url}&title=true')
     if response.status_code == 200:
 
@@ -93,20 +109,7 @@ def embed_and_save_in_chroma(chunk_id, article_chunk, article_url, article_title
     return collection.get("id1", include=["metadatas", "embeddings", "documents"])
 
 
-def save_latest_rss_as_json(rss_feed_url, json_file_name):
-    """Saves the latest RSS feed as a JSON file"""
-    list_of_articles = get_articles_from_rss(rss_feed_url)
-    article_json = []
-    for article in list_of_articles:
-        article_json.append({'title': article['title'],
-                             'public_url': article['public_url'],
-                             'publish_date': article['date'],
-                             'file_location': f'./data/{article["title"]}.md',
-                             })
-    with open(json_file_name, 'w') as file:
-        json.dump(article_json, file)
 
-    return article_json
 
 
 def chunk_and_embed_one_article_from_json(json_file_name, article_title):
@@ -157,7 +160,7 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     for article in article_json:
         if not os.path.exists(f'{markdown_save_path}/{article["title"]}.md'):
             print(f"NEW ARTICLE: {article['title']}")
-            get_article_as_markdown(article['public_url'], article['title'], markdown_save_path)
+            get_article_as_markdown(article['public_url'], STRATECHERY_ACCESS_TOKEN, article['title'], markdown_save_path)
             if embed:
                 chunk_and_embed_one_article_from_json(json_file_name, article['title'])
             new_articles.append(article)
