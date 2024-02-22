@@ -1,7 +1,5 @@
 venv/
 
-chroma.db/
-
 .env
 
 data/*
