@@ -4,6 +4,12 @@ import streamlit as st
 from chatbot_helper import SYSTEM_MESSAGE, create_chat_completion_with_rag
 from openai import OpenAI
 
+st.set_page_config(
+    page_title="Stratechery Chatbot",
+    page_icon="🖋️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 with open("styles/styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
