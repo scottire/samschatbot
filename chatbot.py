@@ -1,8 +1,12 @@
+import random
+import time
 import streamlit as st
 from chatbot_helper import SYSTEM_MESSAGE, create_chat_completion_with_rag
 from openai import OpenAI
 
-openai_client = OpenAI()
+
+with open("styles/styles.css") as css:
+    st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
 st.title("Ben Thompson's Stratechery Chatbot")
 
@@ -10,13 +14,13 @@ if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": SYSTEM_MESSAGE}]
 
 # SIDEBAR
+openai_client = OpenAI()
 with st.sidebar:
     gpt_model = st.selectbox('Select a Model',
                              ('gpt-3.5-turbo', 'gpt-4-turbo-preview')
                              )
 
 # CHATBOT
-
 for message in st.session_state.messages:
     if message["role"] != "system":
         with st.chat_message(message["role"]):
@@ -34,13 +38,14 @@ if prompt := st.chat_input(placeholder="What does Ben think about the Apple Visi
                                                      [{"role": msg["role"], "content": msg["content"]} for msg in
                                                       st.session_state.messages],
                                                      gpt_model)
-            # stream = openai_client.chat.completions.create(
-            #     model=gpt_model,
-            #     messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages],
-            #     stream=True,
-            # )
         if type(stream) is str:
-            st.write(stream)
+            def stream_data():
+                for word in stream.split():
+                    yield word + " "
+                    time.sleep(random.uniform(0.01, 0.03))
+
+
+            st.write_stream(stream_data())
             response = stream
         else:
             response = st.write_stream(stream)
