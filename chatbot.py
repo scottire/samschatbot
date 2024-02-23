@@ -44,7 +44,6 @@ if prompt := st.chat_input(placeholder="What does Ben think about the Apple Visi
                     yield word + " "
                     time.sleep(random.uniform(0.01, 0.03))
 
-
             st.write_stream(stream_data())
             response = stream
         else:
