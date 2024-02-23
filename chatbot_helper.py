@@ -6,11 +6,10 @@ from openai import OpenAI
 
 dotenv.load_dotenv()
 
-print("IS_CLOUD: " + os.getenv('IS_CLOUD'))
-if os.getenv('IS_CLOUD') == 'true':
-    __import__('pysqlite3')
-    import sys
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai_client = OpenAI()
