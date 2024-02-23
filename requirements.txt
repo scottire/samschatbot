@@ -4,3 +4,4 @@ feedparser
 langchain
 openai
 streamlit
+pysqlite3-binary
