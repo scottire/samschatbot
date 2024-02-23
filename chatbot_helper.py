@@ -1,4 +1,3 @@
-import chromadb
 import dotenv
 import os
 import json
@@ -15,6 +14,7 @@ if os.getenv('IS_CLOUD') == 'true':
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai_client = OpenAI()
 
+import chromadb
 chroma_client = chromadb.PersistentClient('./chroma.db')
 
 
