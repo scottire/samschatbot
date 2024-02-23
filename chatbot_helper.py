@@ -6,6 +6,7 @@ from openai import OpenAI
 
 dotenv.load_dotenv()
 
+print("IS_CLOUD: " + os.getenv('IS_CLOUD'))
 if os.getenv('IS_CLOUD') == 'true':
     __import__('pysqlite3')
     import sys
