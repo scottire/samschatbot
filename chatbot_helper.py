@@ -1,7 +1,3 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
 import chromadb
 import dotenv
 import os
@@ -9,6 +5,11 @@ import json
 from openai import OpenAI
 
 dotenv.load_dotenv()
+
+if os.getenv('IS_LOCAL') != 'true':
+    __import__('pysqlite3')
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai_client = OpenAI()
