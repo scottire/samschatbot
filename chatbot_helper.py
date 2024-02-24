@@ -138,14 +138,6 @@ def get_last_update_time(repo_owner, repo_name, file_path):
     else:
         return f"Failed to fetch data: {response.status_code}"
 
-repo_owner = "benfwalla"
-repo_name = "BenThompsonChatbot"
-file_path = "data.json"
-
-last_update_time = get_last_update_time(repo_owner, repo_name, file_path)
-print(f"Last updated time of {file_path}: {last_update_time}")
-
-
 
 # test_messages = [
 #     {'role': 'system', 'content': SYSTEM_MESSAGE}
