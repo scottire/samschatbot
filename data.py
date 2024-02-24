@@ -38,7 +38,7 @@ def get_articles_from_rss(rss_feed_url):
     return articles
 
 
-def save_latest_rss_as_json(rss_feed_url, json_file_name):
+def save_latest_rss_as_json(rss_feed_url, json_file_name=None):
     """Saves the latest RSS feed as a JSON file"""
     list_of_articles = get_articles_from_rss(rss_feed_url)
     article_json = []
@@ -48,8 +48,9 @@ def save_latest_rss_as_json(rss_feed_url, json_file_name):
                              'publish_date': article['date'],
                              'file_location': f'./data/{article["title"]}.md',
                              })
-    with open(json_file_name, 'w') as file:
-        json.dump(article_json, file)
+    if json_file_name:
+        with open(json_file_name, 'w') as file:
+            json.dump(article_json, file)
 
     return article_json
 
@@ -86,7 +87,8 @@ def split_article_into_chunks(article_content, article_title, chunk_size=1000):
         language=Language.MARKDOWN, chunk_size=chunk_size, chunk_overlap=0
     )
     chunks = markdown_splitter.create_documents([article_content])
-    chunks_with_ids = [{'chunk_id': f"{i}_{article_title}", 'page_content': chunk.page_content} for i, chunk in enumerate(chunks)]
+    chunks_with_ids = [{'chunk_id': f"{i}_{article_title}", 'page_content': chunk.page_content} for i, chunk in
+                       enumerate(chunks)]
     return chunks_with_ids
 
 
@@ -109,9 +111,6 @@ def embed_and_save_in_chroma(chunk_id, article_chunk, article_url, article_title
     return collection.get("id1", include=["metadatas", "embeddings", "documents"])
 
 
-
-
-
 def chunk_and_embed_one_article_from_json(json_file_name, article_title):
     """Chunks and embeds the article in the given JSON file to Chroma"""
     with open(json_file_name, 'r') as file:
@@ -123,7 +122,8 @@ def chunk_and_embed_one_article_from_json(json_file_name, article_title):
         markdown_content = file.read()
     chunks = split_article_into_chunks(markdown_content, article['title'])
     for chunk in chunks:
-        print(f"({chunk['chunk_id'].split('_')[0]}/{len(chunks) - 1}) {article['title']} - {chunk['page_content'][:50]}...")
+        print(
+            f"({chunk['chunk_id'].split('_')[0]}/{len(chunks) - 1}) {article['title']} - {chunk['page_content'][:50]}...")
         embed_and_save_in_chroma(chunk['chunk_id'],
                                  chunk['page_content'],
                                  article['public_url'],
@@ -131,6 +131,7 @@ def chunk_and_embed_one_article_from_json(json_file_name, article_title):
                                  article['publish_date']
                                  )
     print("Done!")
+
 
 def chunk_and_embed_articles_from_json(file_name):
     """Chunks and embeds the articles in the given JSON file to Chroma"""
@@ -143,7 +144,8 @@ def chunk_and_embed_articles_from_json(file_name):
             markdown_content = file.read()
         chunks = split_article_into_chunks(markdown_content, article['title'])
         for chunk in chunks:
-            print(f"({chunk['chunk_id'].split('_')[0]}/{len(chunks)-1}) {article['title']} - {chunk['page_content'][:50]}...")
+            print(
+                f"({chunk['chunk_id'].split('_')[0]}/{len(chunks) - 1}) {article['title']} - {chunk['page_content'][:50]}...")
             embed_and_save_in_chroma(chunk['chunk_id'],
                                      chunk['page_content'],
                                      article['public_url'],
@@ -155,15 +157,27 @@ def chunk_and_embed_articles_from_json(file_name):
 
 def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, embed=True):
     """Returns a list of new articles that do not exist in the given json file or markdown save path"""
-    article_json = save_latest_rss_as_json(rss_feed_url, json_file_name)
+    article_json = save_latest_rss_as_json(rss_feed_url)
     new_articles = []
     for article in article_json:
         if not os.path.exists(f'{markdown_save_path}/{article["title"]}.md'):
             print(f"NEW ARTICLE: {article['title']}")
-            get_article_as_markdown(article['public_url'], STRATECHERY_ACCESS_TOKEN, article['title'], markdown_save_path)
+            get_article_as_markdown(article['public_url'], STRATECHERY_ACCESS_TOKEN, article['title'],
+                                    markdown_save_path)
             if embed:
                 chunk_and_embed_one_article_from_json(json_file_name, article['title'])
             new_articles.append(article)
+
+    # Read existing data from the file
+    with open(json_file_name, 'r') as file:
+        all_articles = json.load(file)
+
+    # Append new articles at the beginning of the list
+    all_articles[:0] = new_articles
+
+    # Write all the articles back to the json file
+    with open(json_file_name, 'w') as file:
+        json.dump(all_articles, file, indent=4)
 
     return new_articles
 
@@ -171,10 +185,9 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
 # save_latest_rss_as_json(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
 #                        'data.json')
 
-#chunk_and_embed_articles_from_json('data.json')
+# chunk_and_embed_articles_from_json('data.json')
 
 print(check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
                                 'data.json',
                                 './data',
                                 embed=True))
-
