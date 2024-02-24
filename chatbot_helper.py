@@ -1,11 +1,13 @@
+from pprint import pprint
 import dotenv
 import os
 import json
 from openai import OpenAI
+import requests
+from datetime import datetime
 
 dotenv.load_dotenv()
 
-print("IS_CLOUD: " + os.getenv('IS_CLOUD'))
 if os.getenv('IS_CLOUD') == 'true':
     __import__('pysqlite3')
     import sys
@@ -58,16 +60,17 @@ def fetch_article_chunks_for_rag(query_text):
 def get_articles_info_from_json(file_name):
     with open(file_name, 'r') as file:
         articles = json.load(file)
-    article_titles = [article['title'] for article in articles]
-    return len(articles), article_titles
+    articles_format = [f"{i+1}. {article['title']} ({article['publish_date']})" for i, article in enumerate(articles)]
+    oldest_article_date = articles[-1]['publish_date']
+    return len(articles), articles_format, oldest_article_date
 
 
-num_articles, article_titles = get_articles_info_from_json('data.json')
+num_articles, articles_format, oldest_article_date = get_articles_info_from_json('data.json')
 
 
 SYSTEM_MESSAGE = f"""* You are a bot that knows everything about Ben Thompson's Stratechery articles (https://stratechery.com/). You are smart, witty, and love tech! You talk candidly and casually.
 * You are trained on Stratechery articles since Nov 6, 2023. Ben Wallace (https://ben-wallace.replit.app/) created you. Your code can be found at https://github.com/benfwalla/BenThompsonChatbot. You are not approved by Ben Thompson.
-* You are trained on the {num_articles} most recent Stratechery articles. The oldest article is Nov 6, 2023. Here are their names in descending order: {article_titles}
+* You are trained on the {num_articles} most recent Stratechery articles. The oldest article is {oldest_article_date}. Here are their names and publish dates from most recent to oldest: {articles_format}
 * You will answer questions using Stratechery articles. You will always refer to the specific name of the article you are citing and hyperlink to its url, as such: [Article Title](Article URL).
 * If you are referring to Ben Thompson, just say "Ben". If you can't answer, you will explain why and suggest sending the question to email@sharptech.fm where Ben can answer it directly!
 * A user's questions may be followed by a bunch of possible answers from Stratechery articles. Each article is is separated by `-----` and is formatted as such: `[Article Title](Article URL)\\n[Chunk of Article Content]`. Use your best judgement to answer the user's query based on the articles provided.
@@ -118,6 +121,30 @@ def create_chat_completion_with_rag(query_text, message_chain, openai_model):
     else:
         print("RAG is not needed!")
         return completion.choices[0].message.content
+
+
+def get_last_update_time(repo_owner, repo_name, file_path):
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/commits?path={file_path}&per_page=1"
+    response = requests.get(url)
+    if response.status_code == 200:
+        commit_data = response.json()
+        if commit_data:
+            last_update_time = commit_data[0]['commit']['committer']['date']
+            last_update_time = datetime.strptime(last_update_time, "%Y-%m-%dT%H:%M:%SZ")
+            formatted_time = last_update_time.strftime("%b %d, %Y")
+            return formatted_time
+        else:
+            return "File not found or no commits for this file."
+    else:
+        return f"Failed to fetch data: {response.status_code}"
+
+repo_owner = "benfwalla"
+repo_name = "BenThompsonChatbot"
+file_path = "data.json"
+
+last_update_time = get_last_update_time(repo_owner, repo_name, file_path)
+print(f"Last updated time of {file_path}: {last_update_time}")
+
 
 
 # test_messages = [
