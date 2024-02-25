@@ -1,6 +1,7 @@
 # Ben Thompson Stratechery Chatbot
 
 ## 🎈 [Use on Streamlit now!](https://unofficial-stratechery-chatbot.streamlit.app/)
+![Stratechery Chatbot](Stratechery%20Chatbot%20_%20Streamlit.jpeg)
 
 ## What does this bot know?
 The bot knows about Ben Thompson, Stratechery, and the [Stratechery](https://stratechery.com/) articles listed in [data.json](data.json). 
