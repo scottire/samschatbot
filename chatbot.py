@@ -14,9 +14,6 @@ st.set_page_config(
 with open("styles/styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
-st.title("Ben Thompson Stratechery Chatbot")
-st.caption(f"_Ask me anything about Stratechery! I'm trained on the {num_articles} most recent Stratechery articles._")
-
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": SYSTEM_MESSAGE}]
 
@@ -26,13 +23,9 @@ APP_DESCRIPTION = f"""
 - It is *not* approved by Ben Thompson or any Stratechery affiliates.
 """
 
-
 openai_client = OpenAI()
 with st.sidebar:
-    gpt_model = st.selectbox('Select a Model',
-                             ('gpt-3.5-turbo', 'gpt-4-turbo-preview')
-                             )
-
+    gpt_model = st.selectbox('Select a Model', ('gpt-3.5-turbo', 'gpt-4-turbo-preview'))
     st.divider()
     with st.expander("What does this bot know?"):
         st.write(f"The bot knows about Ben Thompson, Stratechery, and the {num_articles} most recent [Stratechery](https://stratechery.com/) articles. The oldest known article dates back to Nov 8, 2023. **It was last updated on {LATEST_DATA_UPDATE}.**")
@@ -49,19 +42,15 @@ with st.sidebar:
     st.caption("_Disclaimer: This app is not affiliated with, endorsed by, or approved by Ben Thompson or Stratechery._")
     st.caption(f"Last updated: {LATEST_DATA_UPDATE}")
 
-
 # CHATBOT
-for message in st.session_state.messages:
-    if message["role"] != "system":
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+st.title("Ben Thompson Stratechery Chatbot")
+st.caption(f"_Ask me anything about Stratechery! I'm trained on the {num_articles} most recent Stratechery articles._")
 
-if prompt := st.chat_input(placeholder="What does Ben think about the Apple Vision Pro?"):
+
+def add_message_and_respond(prompt):
     st.session_state.messages.append({"role": "user", "content": prompt})
-
     with st.chat_message("user"):
         st.markdown(prompt)
-
     with st.chat_message("assistant"):
         with st.spinner(""):
             stream = create_chat_completion_with_rag(prompt,
@@ -79,3 +68,37 @@ if prompt := st.chat_input(placeholder="What does Ben think about the Apple Visi
         else:
             response = st.write_stream(stream)
     st.session_state.messages.append({"role": "assistant", "content": response})
+
+
+button_container = st.empty()
+button_string = ""
+with button_container:
+    col1, col2 = st.columns(2, gap="small")
+    questions = [
+        "What does Ben think of the Vision Pro?",
+        "Provide the key points in Stratechery's analysis of Microsoft's acquisition of Activision Blizzard",
+        "What is Disney's strategy moving forward?",
+        "Which articles talk about Substack?"
+    ]
+    with col1:
+        if st.button(questions[0], use_container_width=True):
+            button_string = questions[0]
+        if st.button(questions[1], use_container_width=True):
+            button_string = questions[1]
+    with col2:
+        if st.button(questions[2], use_container_width=True):
+            button_string = questions[2]
+        if st.button(questions[3], use_container_width=True):
+            button_string = questions[3]
+
+for message in st.session_state.messages:
+    if message["role"] != "system":
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+if button_string:
+    button_container.empty()
+    add_message_and_respond(button_string)
+
+if prompt := st.chat_input(placeholder="Message StratecheryBot..."):
+    add_message_and_respond(prompt)
