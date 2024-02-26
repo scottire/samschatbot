@@ -2,6 +2,7 @@ requests
 chromadb
 feedparser
 langchain
+langsmith
 openai
 streamlit
 pysqlite3-binary
