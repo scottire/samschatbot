@@ -12,7 +12,10 @@ st.set_page_config(
 )
 
 with open("styles/styles.css") as css:
-    st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
+    css_content = css.read()
+    #st.markdown(f"<style>[class^=st-emotion] {{ font-family: 'Times New Roman' !important; }}</style>", unsafe_allow_html=True)
+    st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
+    print(css_content)
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": SYSTEM_MESSAGE}]
