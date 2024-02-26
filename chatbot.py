@@ -102,4 +102,5 @@ if button_string:
     add_message_and_respond(button_string)
 
 if prompt := st.chat_input(placeholder="Message StratecheryBot..."):
+    button_container.empty()
     add_message_and_respond(prompt)
