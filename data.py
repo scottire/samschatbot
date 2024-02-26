@@ -162,10 +162,20 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     for article in article_json:
         if not os.path.exists(f'{markdown_save_path}/{article["title"]}.md'):
             print(f"NEW ARTICLE: {article['title']}")
-            get_article_as_markdown(article['public_url'], STRATECHERY_ACCESS_TOKEN, article['title'],
-                                    markdown_save_path)
+            article_markdown = get_article_as_markdown(article['public_url'],
+                                                       STRATECHERY_ACCESS_TOKEN,
+                                                       article['title'],
+                                                       markdown_save_path)
             if embed:
-                chunk_and_embed_one_article_from_json(json_file_name, article['title'])
+                chunks = split_article_into_chunks(article_markdown, article['title'])
+                for chunk in chunks:
+                    print(f"({chunk['chunk_id'].split('_')[0]}/{len(chunks) - 1}) {article['title']} - {chunk['page_content'][:50]}...")
+                    embed_and_save_in_chroma(chunk['chunk_id'],
+                                             chunk['page_content'],
+                                             article['public_url'],
+                                             article['title'],
+                                             article['publish_date']
+                                             )
             new_articles.append(article)
 
     # Read existing data from the file
