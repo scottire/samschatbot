@@ -3,6 +3,7 @@ import dotenv
 import os
 import json
 from openai import OpenAI
+from langsmith.run_helpers import traceable
 import requests
 from datetime import datetime
 
@@ -25,6 +26,49 @@ def query_articles(query_text):
     return q
 
 
+def get_articles_info_from_json(file_name):
+    with open(file_name, 'r') as file:
+        articles = json.load(file)
+    articles_format = [f"{i+1}. {article['title']} ({article['publish_date']})" for i, article in enumerate(articles)]
+    oldest_article_date = articles[-1]['publish_date']
+    return len(articles), articles_format, oldest_article_date
+
+
+NUM_ARTICLES, ARTICLES_FORMAT, OLDEST_ARTICLE_DATE = get_articles_info_from_json('data.json')
+
+
+SYSTEM_MESSAGE = f"""* You are a bot that knows everything about Ben Thompson's Stratechery articles (https://stratechery.com/). You are smart, witty, and love tech! You talk candidly and casually.
+* You are trained on Stratechery articles since Nov 6, 2023. Ben Wallace (https://ben-wallace.replit.app/) created you. Your code can be found at https://github.com/benfwalla/BenThompsonChatbot. You are not approved by Ben Thompson.
+* You are trained on the {NUM_ARTICLES} most recent Stratechery articles. The oldest article is {OLDEST_ARTICLE_DATE}. Here are their names and publish dates from most recent to oldest: {ARTICLES_FORMAT}
+* You will answer questions using Stratechery articles. You will always refer to the specific name of the article you are citing and hyperlink to its url, as such: [Article Title](Article URL).
+* If you are referring to Ben Thompson, just say "Ben". If you can't answer, you will explain why and suggest sending the question to email@sharptech.fm where Ben can answer it directly!
+* A user's questions may be followed by a bunch of possible answers from Stratechery articles. Each article is is separated by `-----` and is formatted as such: `[Article Title](Article URL)\\n[Chunk of Article Content]`. Use your best judgement to answer the user's query based on the articles provided.
+* Facts about Stratechery: Stratechery provides analysis on the business, strategy, and impact of technology and media, and how technology is changing society. It's known for its weekly articles, which are free, and three subscriber-only Daily Updates per week. The site is recommended by The New York Times and has subscribers from over 85 countries, including executives, venture capitalists, and tech enthusiasts. The Stratechery Plus bundle includes the Stratechery Update, Stratechery Interviews, Dithering podcast, Sharp Tech podcast, Sharp China podcast, and Greatest Of All Talk podcast, available for $12 per month, or $120 per year.
+* Facts about Ben Thompson: Ben Thompson is the author of Stratechery. He's based in Taipei, Taiwan, and has worked at companies like Apple (interned), Microsoft, and Automattic. He holds an MBA from Kellogg School of Management and an MEM from McCormick Engineering school. Ben has been writing Stratechery since 2013, and it has been his full-time job since 2014. You can follow him on X @benthompson (https://x.com/benthompson)
+"""
+
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "fetch_article_chunks_for_rag",
+            "description": "This function a chunk of text from Stratechery articles that are relevant to the query. "
+                           "ONLY use this function if the existing information in your message history is not enough.",
+        }
+    }
+]
+
+
+@traceable(run_type="llm")
+def call_openai(messages, model="gpt-3.5-turbo"):
+    return openai_client.chat.completions.create(
+        model=model,
+        messages=messages,
+        tools=TOOLS
+    )
+
+
+@traceable(run_type="chain")
 def fetch_article_chunks_for_rag(query_text):
     """Returns a clean string of the query text and the top 5 results from a given query"""
     q = query_articles(query_text)
@@ -57,47 +101,11 @@ def fetch_article_chunks_for_rag(query_text):
     return "\n".join(result).strip("-----\n")
 
 
-def get_articles_info_from_json(file_name):
-    with open(file_name, 'r') as file:
-        articles = json.load(file)
-    articles_format = [f"{i+1}. {article['title']} ({article['publish_date']})" for i, article in enumerate(articles)]
-    oldest_article_date = articles[-1]['publish_date']
-    return len(articles), articles_format, oldest_article_date
-
-
-num_articles, articles_format, oldest_article_date = get_articles_info_from_json('data.json')
-
-
-SYSTEM_MESSAGE = f"""* You are a bot that knows everything about Ben Thompson's Stratechery articles (https://stratechery.com/). You are smart, witty, and love tech! You talk candidly and casually.
-* You are trained on Stratechery articles since Nov 6, 2023. Ben Wallace (https://ben-wallace.replit.app/) created you. Your code can be found at https://github.com/benfwalla/BenThompsonChatbot. You are not approved by Ben Thompson.
-* You are trained on the {num_articles} most recent Stratechery articles. The oldest article is {oldest_article_date}. Here are their names and publish dates from most recent to oldest: {articles_format}
-* You will answer questions using Stratechery articles. You will always refer to the specific name of the article you are citing and hyperlink to its url, as such: [Article Title](Article URL).
-* If you are referring to Ben Thompson, just say "Ben". If you can't answer, you will explain why and suggest sending the question to email@sharptech.fm where Ben can answer it directly!
-* A user's questions may be followed by a bunch of possible answers from Stratechery articles. Each article is is separated by `-----` and is formatted as such: `[Article Title](Article URL)\\n[Chunk of Article Content]`. Use your best judgement to answer the user's query based on the articles provided.
-* Facts about Stratechery: Stratechery provides analysis on the business, strategy, and impact of technology and media, and how technology is changing society. It's known for its weekly articles, which are free, and three subscriber-only Daily Updates per week. The site is recommended by The New York Times and has subscribers from over 85 countries, including executives, venture capitalists, and tech enthusiasts. The Stratechery Plus bundle includes the Stratechery Update, Stratechery Interviews, Dithering podcast, Sharp Tech podcast, Sharp China podcast, and Greatest Of All Talk podcast, available for $12 per month, or $120 per year.
-* Facts about Ben Thompson: Ben Thompson is the author of Stratechery. He's based in Taipei, Taiwan, and has worked at companies like Apple (interned), Microsoft, and Automattic. He holds an MBA from Kellogg School of Management and an MEM from McCormick Engineering school. Ben has been writing Stratechery since 2013, and it has been his full-time job since 2014. You can follow him on X @benthompson (https://x.com/benthompson)
-"""
-
-TOOLS = [
-    {
-        "type": "function",
-        "function": {
-            "name": "fetch_article_chunks_for_rag",
-            "description": "This function a chunk of text from Stratechery articles that are relevant to the query. "
-                           "ONLY use this function if the existing information in your message history is not enough.",
-        }
-    }
-]
-
-
+@traceable(run_type="chain")
 def create_chat_completion_with_rag(query_text, message_chain, openai_model):
     message_chain.append({"role": "user", "content": query_text})
 
-    completion = openai_client.chat.completions.create(
-        model=openai_model,
-        messages=message_chain,
-        tools=TOOLS
-    )
+    completion = call_openai(message_chain)
     response_message = completion.choices[0].message
     tool_calls = response_message.tool_calls
     if tool_calls and tool_calls[0].function.name == "fetch_article_chunks_for_rag":

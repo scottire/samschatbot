@@ -1,7 +1,7 @@
 import random
 import time
 import streamlit as st
-from chatbot_helper import SYSTEM_MESSAGE, create_chat_completion_with_rag, num_articles, get_last_update_time
+from chatbot_helper import SYSTEM_MESSAGE, NUM_ARTICLES, create_chat_completion_with_rag, get_last_update_time
 from openai import OpenAI
 
 st.set_page_config(
@@ -29,7 +29,7 @@ with st.sidebar:
     gpt_model = st.selectbox('Select a Model', ('gpt-3.5-turbo', 'gpt-4-turbo-preview'))
     st.divider()
     with st.expander("What does this bot know?"):
-        st.write(f"The bot knows about Ben Thompson, Stratechery, and the {num_articles} most recent [Stratechery](https://stratechery.com/) articles. The oldest known article dates back to Nov 8, 2023. **It was last updated on {LATEST_DATA_UPDATE}.**")
+        st.write(f"The bot knows about Ben Thompson, Stratechery, and the {NUM_ARTICLES} most recent [Stratechery](https://stratechery.com/) articles. The oldest known article dates back to Nov 8, 2023. **It was last updated on {LATEST_DATA_UPDATE}.**")
     with st.expander("How was this bot built?"):
         st.write(f"""
         - Stratechery articles were saved as markdown files, split into smaller chunks, and embedded in a [Chroma](https://www.trychroma.com/) database.
@@ -45,7 +45,7 @@ with st.sidebar:
 
 # CHATBOT
 st.title("Ben Thompson Stratechery Chatbot")
-st.caption(f"_Ask me anything about Stratechery! I'm trained on the {num_articles} most recent Stratechery articles._")
+st.caption(f"_Ask me anything about Stratechery! I'm trained on the {NUM_ARTICLES} most recent Stratechery articles._")
 
 
 def add_message_and_respond(prompt):
