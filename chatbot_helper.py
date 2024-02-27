@@ -29,12 +29,18 @@ def query_articles(query_text):
 def get_articles_info_from_json(file_name):
     with open(file_name, 'r') as file:
         articles = json.load(file)
-    articles_format = [f"{i+1}. {article['title']} ({article['publish_date']})" for i, article in enumerate(articles)]
+    articles_format = []
+    for i, article in enumerate(articles):
+        article['publish_date'] = datetime.strptime(article['publish_date'], "%a, %d %b %Y %H:%M:%S %z").strftime("%b %d, %Y")
+        articles_format.append(f"{i+1}. {article['title']} ({article['publish_date']})")
+    most_recent_article_title = articles[0]['title']
+    most_recent_article_date = articles[0]['publish_date']
+    most_recent_article_url = articles[0]['public_url']
     oldest_article_date = articles[-1]['publish_date']
-    return len(articles), articles_format, oldest_article_date
+    return len(articles), articles_format, most_recent_article_title, most_recent_article_date, most_recent_article_url, oldest_article_date
 
 
-NUM_ARTICLES, ARTICLES_FORMAT, OLDEST_ARTICLE_DATE = get_articles_info_from_json('data.json')
+NUM_ARTICLES, ARTICLES_FORMAT, MOST_RECENT_ARTICLE_TITLE, MOST_RECENT_ARTICLE_DATE, MOST_RECENT_ARTICLE_URL, OLDEST_ARTICLE_DATE = get_articles_info_from_json('data.json')
 
 
 SYSTEM_MESSAGE = f"""* You are a bot that knows everything about Ben Thompson's Stratechery articles (https://stratechery.com/). You are smart, witty, and love tech! You talk candidly and casually.

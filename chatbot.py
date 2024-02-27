@@ -1,7 +1,8 @@
 import random
 import time
 import streamlit as st
-from chatbot_helper import SYSTEM_MESSAGE, NUM_ARTICLES, create_chat_completion_with_rag, get_last_update_time
+from chatbot_helper import (SYSTEM_MESSAGE, NUM_ARTICLES, MOST_RECENT_ARTICLE_TITLE, MOST_RECENT_ARTICLE_DATE,
+                            MOST_RECENT_ARTICLE_URL, create_chat_completion_with_rag, get_last_update_time)
 from openai import OpenAI
 
 st.set_page_config(
@@ -42,6 +43,7 @@ with st.sidebar:
     st.divider()
     st.caption("_Disclaimer: This app is not affiliated with, endorsed by, or approved by Ben Thompson or Stratechery._")
     st.caption(f"Last updated: {LATEST_DATA_UPDATE}")
+    st.caption(f"Most recent known article: [{MOST_RECENT_ARTICLE_TITLE}]({MOST_RECENT_ARTICLE_URL}) ({MOST_RECENT_ARTICLE_DATE})")
 
 # CHATBOT
 st.title("Ben Thompson Stratechery Chatbot")
@@ -79,7 +81,7 @@ with button_container:
         "What does Ben think of the Vision Pro?",
         "Provide the key points in Stratechery's analysis of Microsoft's acquisition of Activision Blizzard",
         "What is Disney's strategy moving forward?",
-        "Which articles talk about Substack?"
+        f"Summarize \"{MOST_RECENT_ARTICLE_TITLE}\""
     ]
     with col1:
         if st.button(questions[0], use_container_width=True):
