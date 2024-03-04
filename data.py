@@ -1,3 +1,4 @@
+import time
 import chromadb
 import requests
 import os
@@ -9,6 +10,7 @@ import json
 from pprint import pprint
 import chromadb.utils.embedding_functions as embedding_functions
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
+from summarize import summarize_article
 
 warnings.filterwarnings("ignore")
 
@@ -155,6 +157,23 @@ def chunk_and_embed_articles_from_json(file_name):
     print("Done!")
 
 
+def summarize_articles_in_json(json_file_name):
+    with open(json_file_name, 'r') as file:
+        articles = json.load(file)
+
+    for i, article in enumerate(articles):
+        print(f"({i+1}/{len(articles)}) - SUMMARIZING {article['title']}")
+        summary = summarize_article(article['file_location'])
+        article['summary'] = summary
+        if i % 10 == 0 and i != 0:
+            print("Sleeping for 60 seconds to avoid rate limiting...")
+            time.sleep(60)
+
+    with open(json_file_name, 'w') as file:
+        json.dump(articles, file, indent=4)
+
+    return articles
+
 def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, embed=True):
     """Returns a list of new articles that do not exist in the given json file or markdown save path"""
     article_json = save_latest_rss_as_json(rss_feed_url)
@@ -195,12 +214,9 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     return new_articles
 
 
-# save_latest_rss_as_json(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
-#                        'data.json')
+summarize_articles_in_json('data.json')
 
-# chunk_and_embed_articles_from_json('data.json')
-
-print(check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
-                                'data.json',
-                                './data',
-                                embed=True))
+# print(check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
+#                                 'data.json',
+#                                 './data',
+#                                 embed=True))

@@ -36,7 +36,8 @@ def summarize_article(markdown_file):
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": f"Summarize the following snippet of a Stratechery {article_type} in markdown. "
-                                              f"Use 'Ben' when describing the author and his points in the third person. Do not use descriptive clauses like 'in the interview,'. Be concise and objective. Return plain text, no formatting: {section_content}"}
+                                              f"Use 'Ben' when describing the author and his points in the third person. Do not use descriptive clauses like 'in the interview,'. "
+                                              f"Be concise and objective, with 3-5 sentences per section. Return a plain text paragraph, no formatting or new lines: {section_content}"}
             ]
         )
         section_summary = section_header + ": " + section_completion.choices[0].message.content
@@ -48,11 +49,11 @@ def summarize_article(markdown_file):
     article_completion = openai_client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": f"The following is a set of summaries from a Stratechery article: {section_summaries}"
-                                          f"Take these and distill it in a final summary about the article. In the event of an interview, intuit what the name abbreviations are from the section headers and use their names. Be concise and objective. Return plain text, no formatting."}
+            {"role": "system", "content": f"The following is a set of summaries from a Stratechery article split by its sections: {section_summaries} "
+                                          f"Take these and distill it in a final summary about the article. "
+                                          f"Mention the name of every section and provide a sentence or two for each."
+                                          f"In the event of an interview, intuit what the name abbreviations are from the section headers and use their names. "
+                                          f"The summary should average 1-3 sentences per section, depending on the length and importannce of the section. Return plain text paragraph, no formatting or no new lines."}
         ]
     )
     return article_completion.choices[0].message.content
-
-
-print(summarize_article('./data/An Interview with Arm CEO Rene Haas.md'))
