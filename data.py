@@ -159,6 +159,9 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     """Returns a list of new articles that do not exist in the given json file or markdown save path"""
     article_json = save_latest_rss_as_json(rss_feed_url)
     new_articles = []
+
+    # Go through each article in the latest rss pull and see if their article exists as a markdown file in /data
+    # If they don't exist, go ahead and get the article markdown, save it, then embed it in Chroma.
     for article in article_json:
         if not os.path.exists(f'{markdown_save_path}/{article["title"]}.md'):
             print(f"NEW ARTICLE: {article['title']}")

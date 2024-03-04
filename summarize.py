@@ -14,6 +14,7 @@ headers_to_split_on = [
 
 
 def summarize_article(markdown_file):
+    """Summarizes the content of a given markdown file using OpenAI's GPT-3.5 model and map-reduce approach"""
     with open(markdown_file, 'r') as f:
         markdown_content = f.read()
 
