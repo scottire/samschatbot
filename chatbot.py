@@ -33,10 +33,24 @@ with st.sidebar:
         st.write(f"The bot knows about Ben Thompson, [Stratechery](https://stratechery.com/), and the {NUM_ARTICLES} most recent Stratechery articles. The oldest known article dates back to Nov 8, 2023. **It was last updated on {LATEST_DATA_UPDATE}.**")
     with st.expander("How was this bot built?"):
         st.write(f"""
+        - You can find the code **[here](https://github.com/benfwalla/BenThompsonChatbot)**.
         - Stratechery articles were saved as markdown files, split into smaller chunks, and embedded in a [Chroma](https://www.trychroma.com/) database.
-        - On (almost) every query, the bot embeds your query, identifies the 5 most similar article chunks, and places them into GPT's context to answer your question. This technique is known as *[Retreival-Augmented Generation (RAG)](https://stackoverflow.blog/2023/10/18/retrieval-augmented-generation-keeping-llms-relevant-and-current/)*.
-        - RAG is far from perfect! I used the open-sourced [`all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model to create the embeddings. I used it because it's free (I'm cheap) and has [good speed and performance](https://huggingface.co/blog/mteb) for what you're getting.
-        - You can find the code **[here](https://github.com/benfwalla/BenThompsonChatbot)**. I removed all those markdown Stratechery articles from the repo out of respect to Ben Thompson.
+        - On (almost) every query, the bot embeds your query, identifies the 7 most similar article chunks, and places them into GPT's context to answer your question. This technique is known as *[Retreival-Augmented Generation (RAG)](https://stackoverflow.blog/2023/10/18/retrieval-augmented-generation-keeping-llms-relevant-and-current/)*.
+        - I used the open-sourced [`all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model to create the embeddings. I used it because it's free (I'm cheap) and has [good speed and performance](https://huggingface.co/blog/mteb) for what you're getting.
+        """)
+    with st.expander("Why did you use RAG to retrieve the articles?"):
+        st.write(f"""
+        Imagine trying to copy & paste all Stratechery articles into ChatGPT... you'll get an error! This is because GPT's _context_ can only fit so much.
+        RAG solves this by being a simple search engine: based on the user's text, RAG finds the most similar chunks of text from all Stratechery articles. We then
+        copy & paste those into GPT's context. RAG is far from perfect! That is why I augmented my RAG approach by inserting [metadata about Stratechery](https://github.com/benfwalla/BenThompsonChatbot/blob/master/chatbot_helper.py#L49) and relevant [pre-summarized articles](https://github.com/benfwalla/BenThompsonChatbot/blob/master/data.json) into context.
+        
+        As context windows increase (Gemini 1.5 [can fit 700,000 words in its context](https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/#context-window)), RAG will likely become [a historic solution](https://medium.com/@erisco_and/the-end-of-retrieval-augmented-generation-emerging-architectures-signal-a-shift-fdf0aad74d50).
+        But for now, it makes my solution more cost effective.
+        """)
+    with st.expander("Why did you use GPT as the LLM?"):
+        st.write(f"""
+        GPT's [Functional calling](https://platform.openai.com/docs/guides/function-calling) is a genuine product differentior from other LLM APIs. It helped me perform RAG much more efficiently by allowing me to manipulate my article querying based on the user's question.\n
+        Anthropic's Claude [also has function calling](https://docs.anthropic.com/claude/docs/functions-external-tools) that I should check out.
         """)
     with st.expander("Who built this bot?"):
         st.write("This bot was built by [Ben Wallace](https://twitter.com/DJbennyBuff). He's been a Stratechery subscriber for about 4 years. He wanted to build a chatbot from scratch and was inspired by the [LennyBot](https://www.lennybot.com/), a GPT bot trained on Lenny's Newsletters.")
