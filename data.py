@@ -188,6 +188,10 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
                                                        STRATECHERY_ACCESS_TOKEN,
                                                        article['title'],
                                                        markdown_save_path)
+
+            summary = summarize_article(f'{markdown_save_path}/{article["title"]}.md')
+            article['summary'] = summary
+
             if embed:
                 chunks = split_article_into_chunks(article_markdown, article['title'])
                 for chunk in chunks:
@@ -214,9 +218,9 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     return new_articles
 
 
-summarize_articles_in_json('data.json')
+#summarize_articles_in_json('data.json')
 
-# print(check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
-#                                 'data.json',
-#                                 './data',
-#                                 embed=True))
+print(check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
+                                'data.json',
+                                './data',
+                                embed=True))
