@@ -22,14 +22,15 @@ chroma_client = chromadb.PersistentClient('./chroma.db')
 
 
 def query_articles(query_text):
-    q = chroma_client.get_collection("stratechery_articles").query(query_texts=query_text, n_results=5)
+    q = chroma_client.get_collection("stratechery_articles").query(query_texts=query_text, n_results=7)
     return q
 
 
-def get_articles_info_from_json(file_name):
-    with open(file_name, 'r') as file:
+def get_articles_info_from_json(json_file_name):
+    with open(json_file_name, 'r') as file:
         articles = json.load(file)
     articles_format = []
+    article_titles = [article['title'] for article in articles]
     for i, article in enumerate(articles):
         article['publish_date'] = datetime.strptime(article['publish_date'], "%a, %d %b %Y %H:%M:%S %z").strftime("%b %d, %Y")
         articles_format.append(f"{i+1}. {article['title']} ({article['publish_date']})")
@@ -37,10 +38,12 @@ def get_articles_info_from_json(file_name):
     most_recent_article_date = articles[0]['publish_date']
     most_recent_article_url = articles[0]['public_url']
     oldest_article_date = articles[-1]['publish_date']
-    return len(articles), articles_format, most_recent_article_title, most_recent_article_date, most_recent_article_url, oldest_article_date
+    return (len(articles), articles_format, article_titles,
+            most_recent_article_title, most_recent_article_date, most_recent_article_url, oldest_article_date)
 
 
-NUM_ARTICLES, ARTICLES_FORMAT, MOST_RECENT_ARTICLE_TITLE, MOST_RECENT_ARTICLE_DATE, MOST_RECENT_ARTICLE_URL, OLDEST_ARTICLE_DATE = get_articles_info_from_json('data.json')
+(NUM_ARTICLES, ARTICLES_FORMAT, ARTICLE_TITLES,
+ MOST_RECENT_ARTICLE_TITLE, MOST_RECENT_ARTICLE_DATE, MOST_RECENT_ARTICLE_URL, OLDEST_ARTICLE_DATE) = get_articles_info_from_json('data.json')
 
 
 SYSTEM_MESSAGE = f"""* You are a bot that knows everything about Ben Thompson's Stratechery articles (https://stratechery.com/). You are smart, witty, and love tech! You talk candidly and casually.
@@ -58,8 +61,22 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "fetch_article_chunks_for_rag",
-            "description": "This function a chunk of text from Stratechery articles that are relevant to the query. "
+            "description": "This function provides chunks of text from Stratechery articles that are relevant to the query. "
                            "ONLY use this function if the existing information in your message history is not enough.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                  "articles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": ARTICLE_TITLES
+                    },
+                    "description": "A list of articles you think is most relevant to the given query from your system message. Provide no more than the top 3 most likely and recent (e.g. ['Aggregator's AI Risk', 'An Interview with Nat Friedman and Daniel Gross Reasoning About AI']).",
+                  }
+                },
+                "required": ["articles"],
+            },
         }
     }
 ]
@@ -74,9 +91,25 @@ def call_openai(messages, model="gpt-3.5-turbo"):
     )
 
 
-@traceable(run_type="chain")
-def fetch_article_chunks_for_rag(query_text):
-    """Returns a clean string of the query text and the top 5 results from a given query"""
+def fetch_article_summaries(articles_to_summarize, json_file_name='data.json'):
+    """Returns a list of dicts with article titles, summaries, and URLs"""
+    with open(json_file_name, 'r') as file:
+        articles = json.load(file)
+
+    summaries = []
+    for article_title in articles_to_summarize:
+        article_dict = next(item for item in articles if item["title"] == article_title)
+        summaries.append({
+            "title": article_title,
+            "summary": article_dict["summary"],
+            "url": article_dict["public_url"]
+        })
+
+    return summaries
+
+
+def fetch_article_chunks_from_query_search(query_text):
+    """Returns an organized list of article chunks from a given query"""
     q = query_articles(query_text)
 
     documents = q['documents'][0]
@@ -84,26 +117,37 @@ def fetch_article_chunks_for_rag(query_text):
     metadatas = q['metadatas'][0]
     ids = q['ids'][0]
 
-    # Combine all relevant information into a single list
     combined = list(zip(distances, documents, metadatas, ids))
+    combined.sort(key=lambda x: x[0])
 
-    # Sort by distance in descending order
-    combined.sort(key=lambda x: x[0], reverse=True)
-
-    # Group by article title
-    grouped = {}
+    grouped_chunks = {}
     for distance, document, metadata, article_id in combined:
         article_title = metadata['title']
-        if article_title not in grouped:
-            grouped[article_title] = {'url': metadata['url'], 'documents': []}
-        grouped[article_title]['documents'].append(document)
+        if article_title not in grouped_chunks:
+            grouped_chunks[article_title] = {'url': metadata['url'], 'documents': []}
+        grouped_chunks[article_title]['documents'].append(document)
 
-    # Build the final string
+    return grouped_chunks
+
+
+def combine_summaries_and_chunks(summaries, chunks):
+    """Combines article summaries and chunks into a single string"""
     result = []
-    for title, info in grouped.items():
+    for summary in summaries:
+        title = summary['title']
+        result.append(f"[{title}]({summary['url']})")
+        result.append(f"Summary: {summary['summary']}")
+        if title in chunks:
+            result.extend(chunks[title]['documents'])
+            del chunks[title]  # Remove the article from chunks to avoid duplication
+        result.append("-----")
+
+    # Append any remaining chunks that didn't have a summary
+    for title, info in chunks.items():
         result.append(f"[{title}]({info['url']})")
         result.extend(info['documents'])
         result.append("-----")
+
     return "\n".join(result).strip("-----\n")
 
 
@@ -114,16 +158,25 @@ def create_chat_completion_with_rag(query_text, message_chain, openai_model):
     completion = call_openai(message_chain)
     response_message = completion.choices[0].message
     tool_calls = response_message.tool_calls
+    print("\n\n")
+    print(tool_calls)
     if tool_calls and tool_calls[0].function.name == "fetch_article_chunks_for_rag":
-        print("RAG is needed!")
-        article_chunks = fetch_article_chunks_for_rag(query_text)
+        if 'articles' in tool_calls[0].function.arguments:
+            article_titles = json.loads(tool_calls[0].function.arguments)['articles']
+            article_summaries = fetch_article_summaries(article_titles)
+        else:
+            article_summaries = []
+
+        article_chunks = fetch_article_chunks_from_query_search(query_text)
+        combined_content = combine_summaries_and_chunks(article_summaries, article_chunks)
+
         message_chain.append(response_message)
         message_chain.append(
             {
                 "tool_call_id": tool_calls[0].id,
                 "role": "tool",
                 "name": "fetch_article_chunks_for_rag",
-                "content": article_chunks,
+                "content": combined_content,
             }
         )
         second_response = openai_client.chat.completions.create(
@@ -133,7 +186,6 @@ def create_chat_completion_with_rag(query_text, message_chain, openai_model):
         )
         return second_response
     else:
-        print("RAG is not needed!")
         return completion.choices[0].message.content
 
 
@@ -159,3 +211,4 @@ def get_last_update_time(repo_owner, repo_name, file_path):
 
 #print(create_chat_completion_with_rag("Who is Ben Thompson?", test_messages, 'gpt-3.5-turbo'))
 #print(create_chat_completion_with_rag("What does Ben think about the Apple Vision Pro?", test_messages, 'gpt-3.5-turbo'))
+#print(fetch_article_summaries(["Aggregator's AI Risk", "An Interview with Nat Friedman and Daniel Gross Reasoning About AI"]))
