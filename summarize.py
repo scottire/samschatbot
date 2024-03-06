@@ -50,10 +50,10 @@ def summarize_article(markdown_file):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": f"The following is a set of summaries from a Stratechery article split by its sections: {section_summaries} "
-                                          f"Take these and distill it in a final summary about the article. "
-                                          f"Mention the name of every section and provide a sentence or two for each."
+                                          f"Take these and place it in a packaged, paragraph summary about the article. "
                                           f"In the event of an interview, intuit what the name abbreviations are from the section headers and use their names. "
-                                          f"The summary should average 1-3 sentences per section, depending on the length and importannce of the section. Return plain text paragraph, no formatting or no new lines."}
+                                          f"Mention the name of every section. The summary should use all the points mentioned below. "
+                                          f"Return plain text paragraph, no formatting and no new lines."}
         ]
     )
     return article_completion.choices[0].message.content
