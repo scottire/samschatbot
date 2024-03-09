@@ -1,6 +1,7 @@
 name: Check for Latest Articles
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 15 * * 1-4'  # Runs at 15:00 UTC every day-of-week from Monday through Thursday
 
