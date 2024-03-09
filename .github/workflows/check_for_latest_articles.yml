@@ -28,7 +28,20 @@ jobs:
           python data.py
         shell: bash
 
-      - name: Commit and push changes
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            echo "::set-output name=changes_exist::false"
+          else
+            echo "Changes detected."
+            echo "::set-output name=changes_exist::true"
+          fi
+        shell: bash
+
+      - name: Commit and push changes if changes exist
+        if: steps.changes.outputs.changes_exist == 'true'
         run: |
           git config --global user.email "benfwalla@gmail.com"
           git config --global user.name "Ben Wallace"
