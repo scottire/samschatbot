@@ -215,13 +215,16 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     with open(json_file_name, 'w') as file:
         json.dump(all_articles, file, indent=4)
 
+    new_article_titles = [article['title'] for article in new_articles]
+    print(f"::set-output name=NEW_ARTICLES::{new_article_titles}")
+
     return new_articles
 
 
 if __name__ == '__main__':
     #summarize_articles_in_json('data.json')
 
-    print(check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
-                                    'data.json',
-                                    './data',
-                                    embed=True))
+    check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
+                              'data.json',
+                              './data',
+                              embed=True)
