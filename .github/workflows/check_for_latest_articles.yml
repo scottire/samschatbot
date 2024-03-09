@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests python-dotenv feedparser chromadb langchain
+          pip install requests python-dotenv feedparser chromadb langchain openai
 
       - name: Run the script
         id: script
