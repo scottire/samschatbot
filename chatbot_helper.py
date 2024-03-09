@@ -205,10 +205,11 @@ def get_last_update_time(repo_owner, repo_name, file_path):
         return f"Failed to fetch data: {response.status_code}"
 
 
-# test_messages = [
-#     {'role': 'system', 'content': SYSTEM_MESSAGE}
-# ]
+if __name__ == '__main__':
+    test_messages = [
+        {'role': 'system', 'content': SYSTEM_MESSAGE}
+    ]
 
-#print(create_chat_completion_with_rag("Who is Ben Thompson?", test_messages, 'gpt-3.5-turbo'))
-#print(create_chat_completion_with_rag("What does Ben think about the Apple Vision Pro?", test_messages, 'gpt-3.5-turbo'))
-#print(fetch_article_summaries(["Aggregator's AI Risk", "An Interview with Nat Friedman and Daniel Gross Reasoning About AI"]))
+    print(create_chat_completion_with_rag("Who is Ben Thompson?", test_messages, 'gpt-3.5-turbo'))
+    print(create_chat_completion_with_rag("What does Ben think about the Apple Vision Pro?", test_messages, 'gpt-3.5-turbo'))
+    print(fetch_article_summaries(["Aggregator's AI Risk", "An Interview with Nat Friedman and Daniel Gross Reasoning About AI"]))
