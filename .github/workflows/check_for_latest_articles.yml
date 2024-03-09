@@ -1,0 +1,36 @@
+name: Check for Latest Articles
+
+on:
+  schedule:
+    - cron: '0 15 * * 1-4'  # Runs at 15:00 UTC every day-of-week from Monday through Thursday
+
+jobs:
+  update_articles:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run the script
+        id: script
+        run: |
+          python data.py
+        shell: bash
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.email "benfwalla@gmail.com"
+          git config --global user.name "Ben Wallace"
+          git add .
+          git commit -m "Update articles: ${{ steps.script.outputs.NEW_ARTICLES }}"
+          git push
