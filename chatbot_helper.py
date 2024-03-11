@@ -21,8 +21,8 @@ import chromadb
 chroma_client = chromadb.PersistentClient('./chroma.db')
 
 
-def query_articles(query_text):
-    q = chroma_client.get_collection("stratechery_articles").query(query_texts=query_text, n_results=7)
+def query_articles(query_text, n_results=7):
+    q = chroma_client.get_collection("stratechery_articles").query(query_texts=query_text, n_results=n_results)
     return q
 
 
@@ -111,7 +111,7 @@ def fetch_article_summaries(articles_to_summarize, json_file_name='data.json'):
 
 def fetch_article_chunks_from_query_search(query_text):
     """Returns an organized list of article chunks from a given query"""
-    q = query_articles(query_text)
+    q = query_articles(query_text, n_results=7)
 
     documents = q['documents'][0]
     distances = q['distances'][0]
