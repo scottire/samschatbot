@@ -89,17 +89,13 @@ def split_article_into_chunks(article_content, article_title, chunk_size=1000):
 
 def embed_and_save_in_chroma(chunk_id, article_chunk, article_url, article_title, article_date):
     """Embeds and saves a given article chunk to Chroma"""
-    collection = chroma_client.get_or_create_collection(
-        name="stratechery_articles",
-        embedding_function=embedding_functions.DefaultEmbeddingFunction(),
-    )
-    collection.upsert(
+    CHROMA_COLLECTION.upsert(
         ids=[chunk_id],
         documents=[article_chunk],
         metadatas=[{"url": article_url, "title": article_title, "date": article_date}],
     )
 
-    return collection.get(chunk_id, include=["metadatas", "embeddings", "documents"])
+    return CHROMA_COLLECTION.get(chunk_id, include=["metadatas", "embeddings", "documents"])
 
 
 def chunk_and_embed_one_article_from_json(json_file_name, article_title):
@@ -168,11 +164,7 @@ def summarize_articles_in_json(json_file_name):
 def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, embed=True):
     """Returns a list of new articles that do not exist in the ChromaDB"""
     # Retrieve existing article titles from ChromaDB
-    collection = chroma_client.get_or_create_collection(
-        name="stratechery_articles",
-        embedding_function=embedding_functions.DefaultEmbeddingFunction(),
-    )
-    all_metadatas = collection.get(include=["metadatas"]).get("metadatas")
+    all_metadatas = CHROMA_COLLECTION.get(include=["metadatas"]).get("metadatas")
     existing_articles = set([x['title'] for x in all_metadatas])
 
     # Fetch the latest RSS feed
@@ -223,11 +215,13 @@ if __name__ == '__main__':
     STRATECHERY_RSS_ID = os.getenv('STRATECHERY_RSS_ID')
     STRATECHERY_ACCESS_TOKEN = os.getenv('STRATECHERY_ACCESS_TOKEN')
 
-    chroma_client = chromadb.PersistentClient('./chroma.db')
+    CHROMA_CLIENT = chromadb.PersistentClient('./chroma.db')
+    CHROMA_COLLECTION = CHROMA_CLIENT.get_or_create_collection(
+        name="stratechery_articles",
+        embedding_function=embedding_functions.DefaultEmbeddingFunction(),
+    )
 
     check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
                               'data.json',
                               './data',
                               embed=True)
-
-    summarize_articles_in_json('data.json')
