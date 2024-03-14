@@ -22,8 +22,12 @@ jobs:
         run: |
           pip install requests python-dotenv feedparser chromadb langchain openai
 
-      - name: Run the script
+      - name: Run data.py
         id: script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          STRATECHERY_RSS_ID: ${{ secrets.STRATECHERY_RSS_ID }}
+          STRATECHERY_ACCESS_TOKEN: ${{ secrets.STRATECHERY_ACCESS_TOKEN }}
         run: |
           python3 data.py
         shell: bash
