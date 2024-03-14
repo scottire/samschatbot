@@ -15,11 +15,6 @@ from summarize import summarize_article
 warnings.filterwarnings("ignore")
 
 dotenv.load_dotenv()
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-STRATECHERY_RSS_ID = os.getenv('STRATECHERY_RSS_ID')
-STRATECHERY_ACCESS_TOKEN = os.getenv('STRATECHERY_ACCESS_TOKEN')
-
-chroma_client = chromadb.PersistentClient('./chroma.db')
 
 
 def get_articles_from_rss(rss_feed_url):
@@ -40,8 +35,8 @@ def get_articles_from_rss(rss_feed_url):
     return articles
 
 
-def save_latest_rss_as_json(rss_feed_url, json_file_name=None):
-    """Saves the latest RSS feed as a JSON file"""
+def fetch_latest_rss_as_json(rss_feed_url, json_file_name=None):
+    """Fetches the latest RSS feed as a JSON file and optionally saves it"""
     list_of_articles = get_articles_from_rss(rss_feed_url)
     article_json = []
     for article in list_of_articles:
@@ -96,10 +91,6 @@ def split_article_into_chunks(article_content, article_title, chunk_size=1000):
 
 def embed_and_save_in_chroma(chunk_id, article_chunk, article_url, article_title, article_date):
     """Embeds and saves a given article chunk to Chroma"""
-    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-        api_key=OPENAI_API_KEY,
-        model_name="text-embedding-3-small"
-    )
     collection = chroma_client.get_or_create_collection(
         name="stratechery_articles",
         embedding_function=embedding_functions.DefaultEmbeddingFunction(),
@@ -110,7 +101,7 @@ def embed_and_save_in_chroma(chunk_id, article_chunk, article_url, article_title
         metadatas=[{"url": article_url, "title": article_title, "date": article_date}],
     )
 
-    return collection.get("id1", include=["metadatas", "embeddings", "documents"])
+    return collection.get(chunk_id, include=["metadatas", "embeddings", "documents"])
 
 
 def chunk_and_embed_one_article_from_json(json_file_name, article_title):
@@ -176,14 +167,22 @@ def summarize_articles_in_json(json_file_name):
 
 
 def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, embed=True):
-    """Returns a list of new articles that do not exist in the given json file or markdown save path"""
-    article_json = save_latest_rss_as_json(rss_feed_url)
+    """Returns a list of new articles that do not exist in the ChromaDB"""
+    # Retrieve existing article titles from ChromaDB
+    collection = chroma_client.get_or_create_collection(
+        name="stratechery_articles",
+        embedding_function=embedding_functions.DefaultEmbeddingFunction(),
+    )
+    all_metadatas = collection.get(include=["metadatas"]).get("metadatas")
+    existing_articles = set([x['title'] for x in all_metadatas])
+
+    # Fetch the latest RSS feed
+    article_json = fetch_latest_rss_as_json(rss_feed_url)
     new_articles = []
 
-    # Go through each article in the latest rss pull and see if their article exists as a markdown file in /data
-    # If they don't exist, go ahead and get the article markdown, save it, then embed it in Chroma.
+    # Go through each article in the latest RSS pull and check if their title exists in the ChromaDB
     for article in article_json:
-        if not os.path.exists(f'{markdown_save_path}/{article["title"]}.md'):
+        if article['title'] not in existing_articles:
             print(f"NEW ARTICLE: {article['title']}")
             article_markdown = get_article_as_markdown(article['public_url'],
                                                        STRATECHERY_ACCESS_TOKEN,
@@ -220,9 +219,15 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
 
 
 if __name__ == '__main__':
-    #summarize_articles_in_json('data.json')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    STRATECHERY_RSS_ID = os.getenv('STRATECHERY_RSS_ID')
+    STRATECHERY_ACCESS_TOKEN = os.getenv('STRATECHERY_ACCESS_TOKEN')
+
+    chroma_client = chromadb.PersistentClient('./chroma.db')
 
     check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
                               'data.json',
                               './data',
                               embed=True)
+
+    # summarize_articles_in_json('data.json')
