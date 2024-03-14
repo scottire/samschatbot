@@ -216,11 +216,6 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     with open(json_file_name, 'w') as file:
         json.dump(all_articles, file, indent=4)
 
-    new_article_titles = [article['title'] for article in new_articles]
-
-    with open(os.getenv('GITHUB_OUTPUT'), 'a') as f:
-        f.write(f"NEW_ARTICLES={new_article_titles}\n")
-
     return new_articles
 
 
