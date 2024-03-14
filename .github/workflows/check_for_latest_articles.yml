@@ -25,7 +25,7 @@ jobs:
       - name: Run the script
         id: script
         run: |
-          python data.py
+          python3 data.py
         shell: bash
 
       - name: Check for changes
@@ -33,10 +33,10 @@ jobs:
         run: |
           if git diff --quiet; then
             echo "No changes to commit."
-            echo "::set-output name=changes_exist::false"
+            echo "changes_exist=false" >> $GITHUB_OUTPUT
           else
             echo "Changes detected."
-            echo "::set-output name=changes_exist::true"
+            echo "changes_exist=true" >> $GITHUB_OUTPUT
           fi
         shell: bash
 

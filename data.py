@@ -174,6 +174,7 @@ def summarize_articles_in_json(json_file_name):
 
     return articles
 
+
 def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, embed=True):
     """Returns a list of new articles that do not exist in the given json file or markdown save path"""
     article_json = save_latest_rss_as_json(rss_feed_url)
@@ -216,7 +217,9 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
         json.dump(all_articles, file, indent=4)
 
     new_article_titles = [article['title'] for article in new_articles]
-    print(f"::set-output name=NEW_ARTICLES::{new_article_titles}")
+
+    with open(os.getenv('GITHUB_OUTPUT'), 'a') as f:
+        f.write(f"NEW_ARTICLES={new_article_titles}\n")
 
     return new_articles
 
