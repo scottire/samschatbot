@@ -152,7 +152,8 @@ def summarize_articles_in_json(json_file_name):
 
     for i, article in enumerate(articles):
         print(f"({i+1}/{len(articles)}) - SUMMARIZING {article['title']}")
-        summary = summarize_article(article['file_location'])
+        markdown_content = get_article_as_markdown(article['public_url'], STRATECHERY_ACCESS_TOKEN, article['title'])
+        summary = summarize_article(article['title'], markdown_content)
         article['summary'] = summary
         if i % 10 == 0 and i != 0:
             print("Sleeping for 60 seconds to avoid rate limiting...")
@@ -182,16 +183,16 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
     for article in article_json:
         if article['title'] not in existing_articles:
             print(f"NEW ARTICLE: {article['title']}")
-            article_markdown = get_article_as_markdown(article['public_url'],
-                                                       STRATECHERY_ACCESS_TOKEN,
-                                                       article['title'],
-                                                       markdown_save_path)
 
-            summary = summarize_article(f'{markdown_save_path}/{article["title"]}.md')
+            markdown_content = get_article_as_markdown(article['public_url'],
+                                                       STRATECHERY_ACCESS_TOKEN,
+                                                       article['title'])
+
+            summary = summarize_article(article['title'], markdown_content)
             article['summary'] = summary
 
             if embed:
-                chunks = split_article_into_chunks(article_markdown, article['title'])
+                chunks = split_article_into_chunks(markdown_content, article['title'])
                 for chunk in chunks:
                     print(f"({chunk['chunk_id'].split('_')[0]}/{len(chunks) - 1}) {article['title']} - {chunk['page_content'][:50]}...")
                     embed_and_save_in_chroma(chunk['chunk_id'],
@@ -229,4 +230,4 @@ if __name__ == '__main__':
                               './data',
                               embed=True)
 
-    # summarize_articles_in_json('data.json')
+    summarize_articles_in_json('data.json')

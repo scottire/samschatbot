@@ -13,11 +13,8 @@ headers_to_split_on = [
 ]
 
 
-def summarize_article(markdown_file):
-    """Summarizes the content of a given markdown file using OpenAI's GPT-3.5 model and map-reduce approach"""
-    with open(markdown_file, 'r') as f:
-        markdown_content = f.read()
-
+def summarize_article(article_title, markdown_content):
+    """Summarizes the content of a given markdown string using OpenAI's GPT-3.5 model and map-reduce approach"""
     if "* * *" in markdown_content:
         markdown_content = ''.join(markdown_content.split("* * *")[:-1])
 
@@ -26,7 +23,7 @@ def summarize_article(markdown_file):
 
     openai_client = OpenAI()
 
-    article_type = "interview" if "Interview" in markdown_file else "article"
+    article_type = "interview" if "Interview" in article_title else "article"
 
     section_summaries = []
     for section in section_splits:
