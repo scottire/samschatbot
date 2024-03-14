@@ -1,5 +1,12 @@
 [
     {
+        "title": "An Interview with Zoom CEO Eric Yuan About Surviving COVID and Building Moats",
+        "public_url": "https://stratechery.com/2024/an-interview-with-zoom-ceo-eric-yuan-about-surviving-covid-and-building-moats/",
+        "publish_date": "Thu, 14 Mar 2024 09:34:02 +0000",
+        "file_location": "./data/An Interview with Zoom CEO Eric Yuan About Surviving COVID and Building Moats.md",
+        "summary": "Ben Thompson interviews Zoom CEO Eric Yuan, discussing his background at WebEx and the founding of Zoom in 2011. Yuan shares insights on surviving COVID challenges, highlighting the importance of strong engineering teams and quick scalability. The discussion covers Yuan's Silicon Valley journey, starting at WebEx, and his decision to prioritize user experience in founding Zoom. Despite COVID boosting Zoom's brand recognition, Yuan expresses regrets over the negative impacts on the company culture and growth trajectory during the pandemic. Ben explores Zoom's platform moat and shift to a dig-and-expand strategy post-COVID. The interview delves into Zoom's team chat functionality, contrasting its customer-centric approach with competitors. They also discuss AI integration in Zoom's Contact Center product, emphasizing the federated AI approach's competitive advantage. The conversation touches on leveraging technology for real-time collaboration and Zoom's focus on sustainability and cost-effectiveness. Eric Yuan assures customers of Zoom's trustworthiness amidst security concerns, highlighting the company's investments in privacy and security. They also discuss Zoom's expansion into the consumer space and virtual reality, envisioning transformative communication experiences through VR."
+    },
+    {
         "title": "Reddit S-1, Reddit's Prospects, Reddit Grows Up",
         "public_url": "https://stratechery.com/2024/reddit-s-1-reddits-prospects-reddit-grows-up/",
         "publish_date": "Wed, 13 Mar 2024 10:48:49 +0000",
