@@ -9,12 +9,12 @@ The oldest known article dates back to Nov 8, 2023.
 
 ## How was this bot built?
 - Stratechery articles were saved as markdown files, split into smaller chunks, and embedded in a [Chroma](https://www.trychroma.com/) database.
-- On (almost) every query, the bot embeds your query, identifies the 5 most similar article chunks, and places them into GPT's context to answer your question. This technique is known as *[Retreival-Augmented Generation (RAG)](https://stackoverflow.blog/2023/10/18/retrieval-augmented-generation-keeping-llms-relevant-and-current/)*.
+- On (almost) every query, the bot embeds your query, identifies the 7 most similar article chunks and 0-3 most relevant article summaries and places them into GPT's context to answer your question. This technique is known as *[Retreival-Augmented Generation (RAG)](https://stackoverflow.blog/2023/10/18/retrieval-augmented-generation-keeping-llms-relevant-and-current/)*.
 - RAG is far from perfect! I used the open-sourced [`all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) model to create the embeddings. I used it because it's free (I'm cheap) and has [good speed and performance](https://huggingface.co/blog/mteb) for what you're getting.
 - I removed all those markdown Stratechery articles from this repo out of respect to Ben Thompson.
 
 ### [data.py](data.py)
-data.py is a mess of a codebase that shows how I retreieved, chunked, and embedded the Straterchery articles
+data.py is a mess of a codebase that shows how I retrieved, chunked, and embedded the Stratechery articles
 
 ### [chatbot.py](chatbot.py)
 chatbot.py is the UI logic for the Streamlit chatbot.
