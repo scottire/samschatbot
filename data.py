@@ -14,8 +14,6 @@ from summarize import summarize_article
 
 warnings.filterwarnings("ignore")
 
-dotenv.load_dotenv()
-
 
 def get_articles_from_rss(rss_feed_url):
     """Returns a list of dictionaries of articles from a given RSS feed showing their url, title, and publish date"""
@@ -219,6 +217,7 @@ def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, 
 
 
 if __name__ == '__main__':
+    dotenv.load_dotenv()
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     STRATECHERY_RSS_ID = os.getenv('STRATECHERY_RSS_ID')
     STRATECHERY_ACCESS_TOKEN = os.getenv('STRATECHERY_ACCESS_TOKEN')
