@@ -51,5 +51,5 @@ jobs:
           git config --global user.email "benfwalla@gmail.com"
           git config --global user.name "Ben Wallace"
           git add .
-          git commit -m "Auto-add new articles: ${{ steps.script.outputs.NEW_ARTICLES }}"
+          git commit -m "Auto-add new article(s)"
           git push
