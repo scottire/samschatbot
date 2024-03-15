@@ -223,5 +223,4 @@ if __name__ == '__main__':
 
     check_for_latest_articles(f'https://stratechery.passport.online/feed/rss/{STRATECHERY_RSS_ID}',
                               'data.json',
-                              './data',
                               embed=True)
