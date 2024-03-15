@@ -161,7 +161,7 @@ def summarize_articles_in_json(json_file_name):
     return articles
 
 
-def check_for_latest_articles(rss_feed_url, json_file_name, markdown_save_path, embed=True):
+def check_for_latest_articles(rss_feed_url, json_file_name, embed=True):
     """Returns a list of new articles that do not exist in the ChromaDB"""
     # Retrieve existing article titles from ChromaDB
     all_metadatas = CHROMA_COLLECTION.get(include=["metadatas"]).get("metadatas")
