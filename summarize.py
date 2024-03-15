@@ -26,7 +26,7 @@ def summarize_article(article_title, markdown_content):
     article_type = "interview" if "Interview" in article_title else "article"
 
     section_summaries = []
-    for section in section_splits:
+    for i, section in enumerate(section_splits):
         section_content = section.page_content
         section_header = list(section.metadata.values())[-1]
         section_completion = openai_client.chat.completions.create(
@@ -39,9 +39,8 @@ def summarize_article(article_title, markdown_content):
         )
         section_summary = section_header + ": " + section_completion.choices[0].message.content
         section_summaries.append(section_summary)
-        print(section_summary)
+        print(f"({i + 1}/{len(section_splits)}): {section_summary}")
 
-    print("\n\n")
     section_summaries = '\n'.join(section_summaries)
     article_completion = openai_client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -53,4 +52,5 @@ def summarize_article(article_title, markdown_content):
                                           f"Return plain text paragraph, no formatting and no new lines."}
         ]
     )
+    print("Full summary: " + article_completion.choices[0].message.content + "\n\n")
     return article_completion.choices[0].message.content
