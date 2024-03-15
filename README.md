@@ -1,4 +1,5 @@
 # Ben Thompson Stratechery Chatbot
+[![Real-time Stratechery Article Updater](https://github.com/benfwalla/BenThompsonChatbot/actions/workflows/check_for_latest_articles.yml/badge.svg?event=schedule)](https://github.com/benfwalla/BenThompsonChatbot/actions/workflows/check_for_latest_articles.yml)
 
 ## 🎈 [Use on Streamlit now!](https://unofficial-stratechery-chatbot.streamlit.app/)
 ![Stratechery Chatbot](img/Stratechery%20Chatbot%20_%20Streamlit.jpeg)
