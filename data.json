@@ -1,5 +1,12 @@
 [
     {
+        "title": "Nvidia Waves and Moats",
+        "public_url": "https://stratechery.com/2024/nvidia-waves-and-moats/",
+        "publish_date": "Tue, 19 Mar 2024 13:48:04 +0000",
+        "file_location": "./data/Nvidia Waves and Moats.md",
+        "summary": "Ben Thompson discusses Nvidia's recent chip announcement event, likening it to an \"AI Woodstock\" led by CEO Jensen Huang. The spectacle of the event overshadowed the announcements, drawing parallels to iconic tech launches. Ben reflects on the shift in Nvidia's GPU Technology Conferences (GTCs) with the introduction of the Blackwell B200 generation, focusing more on chip launches. He highlights Nvidia's dominance in generative AI and the integration of hardware and software. Nvidia unveiled the Blackwell computing platform, featuring the B200 chip for increased performance in training, possibly adjusting prices to maintain market share. Ben explores Nvidia Inference Microservices (NIM), aimed at simplifying AI model deployment exclusively on Nvidia GPUs, addressing market dynamics and maintaining Nvidia's software moat."
+    },
+    {
         "title": "Apple Releases AI Research Paper, Apple   Gemini?",
         "public_url": "https://stratechery.com/2024/apple-releases-ai-research-paper-apple-gemini/",
         "publish_date": "Mon, 18 Mar 2024 12:52:36 +0000",
