@@ -1,5 +1,12 @@
 [
     {
+        "title": "Microsoft and Inflection AI, Inflection Oddities, The Acquisition That Isn't",
+        "public_url": "https://stratechery.com/2024/microsoft-and-inflection-ai-inflection-oddities-the-acquisition-that-isnt/",
+        "publish_date": "Wed, 20 Mar 2024 13:34:49 +0000",
+        "file_location": "./data/Microsoft and Inflection AI, Inflection Oddities, The Acquisition That Isn't.md",
+        "summary": "In a recent article from Stratechery by Ben Thompson, he delves into Microsoft's strategic acquisition of Inflection AI, a move that has not garnered much attention in the tech press. Despite oddities surrounding Inflection AI's massive GPU purchase and the lack of a clear API story, Microsoft's hiring of Mustafa Suleyman and his team is a key part of the company's AI ambitions to challenge Google. Ben points out Microsoft's savvy diversification strategy in AI investments, including hedging with suppliers like Inflection AI. The unconventional acquisition showcases the intricate dynamics of big companies, investors, and startups in the tech industry, facilitated by Greylock and Reid Hoffman's board connections, allowing Microsoft access to the team, models, and potential GPUs."
+    },
+    {
         "title": "Nvidia Waves and Moats",
         "public_url": "https://stratechery.com/2024/nvidia-waves-and-moats/",
         "publish_date": "Tue, 19 Mar 2024 13:48:04 +0000",
