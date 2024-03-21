@@ -2,7 +2,7 @@ import random
 import time
 import streamlit as st
 from chatbot_helper import (SYSTEM_MESSAGE, NUM_ARTICLES, MOST_RECENT_ARTICLE_TITLE, MOST_RECENT_ARTICLE_DATE,
-                            MOST_RECENT_ARTICLE_URL, create_chat_completion_with_rag, get_last_update_time)
+                            MOST_RECENT_ARTICLE_URL, create_chat_completion_with_rag)
 from openai import OpenAI
 
 st.set_page_config(
@@ -20,7 +20,6 @@ if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": SYSTEM_MESSAGE}]
 
 # SIDEBAR
-LATEST_DATA_UPDATE = get_last_update_time("benfwalla", "BenThompsonChatbot", "data.json")
 APP_DESCRIPTION = f"""
 - It is *not* approved by Ben Thompson or any Stratechery affiliates.
 """
@@ -30,7 +29,7 @@ with st.sidebar:
     gpt_model = st.selectbox('Select a Model', ('gpt-3.5-turbo', 'gpt-4-turbo-preview'))
     st.divider()
     with st.expander("What does this bot know?"):
-        st.write(f"The bot knows about Ben Thompson, [Stratechery](https://stratechery.com/), and the {NUM_ARTICLES} most recent Stratechery articles. The oldest known article dates back to Nov 8, 2023. **It was last updated on {LATEST_DATA_UPDATE}.**")
+        st.write(f"The bot knows about Ben Thompson, [Stratechery](https://stratechery.com/), and the {NUM_ARTICLES} most recent Stratechery articles. The oldest known article dates back to Nov 8, 2023. **It was last updated on {MOST_RECENT_ARTICLE_DATE}.**")
     with st.expander("How was this bot built?"):
         st.write(f"""
         - You can find the code **[here](https://github.com/benfwalla/BenThompsonChatbot)**.
@@ -56,7 +55,7 @@ with st.sidebar:
         st.write("This bot was built by [Ben Wallace](https://twitter.com/DJbennyBuff). He's been a Stratechery subscriber for about 4 years. He wanted to build a chatbot from scratch and was inspired by the [LennyBot](https://www.lennybot.com/), a GPT bot trained on Lenny's Newsletters.")
     st.divider()
     st.caption("_Disclaimer: This app is not affiliated with, endorsed by, or approved by Ben Thompson or Stratechery._")
-    st.caption(f"Last updated: {LATEST_DATA_UPDATE}")
+    st.caption(f"Last updated: {MOST_RECENT_ARTICLE_DATE}")
     st.caption(f"Most recent known article: [{MOST_RECENT_ARTICLE_TITLE}]({MOST_RECENT_ARTICLE_URL}) ({MOST_RECENT_ARTICLE_DATE})")
 
 # CHATBOT

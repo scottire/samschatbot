@@ -192,22 +192,6 @@ def create_chat_completion_with_rag(query_text, message_chain, openai_model):
         return completion.choices[0].message.content
 
 
-def get_last_update_time(repo_owner, repo_name, file_path):
-    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/commits?path={file_path}&per_page=1"
-    response = requests.get(url)
-    if response.status_code == 200:
-        commit_data = response.json()
-        if commit_data:
-            last_update_time = commit_data[0]['commit']['committer']['date']
-            last_update_time = datetime.strptime(last_update_time, "%Y-%m-%dT%H:%M:%SZ")
-            formatted_time = last_update_time.strftime("%b %d, %Y")
-            return formatted_time
-        else:
-            return "File not found or no commits for this file."
-    else:
-        return f"Failed to fetch data: {response.status_code}"
-
-
 if __name__ == '__main__':
     test_messages = [
         {'role': 'system', 'content': SYSTEM_MESSAGE}
