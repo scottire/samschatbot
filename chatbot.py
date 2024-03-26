@@ -4,6 +4,8 @@ import streamlit as st
 from chatbot_helper import (SYSTEM_MESSAGE, NUM_ARTICLES, MOST_RECENT_ARTICLE_TITLE, MOST_RECENT_ARTICLE_DATE,
                             MOST_RECENT_ARTICLE_URL, create_chat_completion_with_rag)
 from openai import OpenAI
+import weave 
+weave.init('stratechery-chatbot')
 
 st.set_page_config(
     page_title="Stratechery Chatbot",

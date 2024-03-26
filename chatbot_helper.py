@@ -6,6 +6,7 @@ from openai import OpenAI
 from langsmith.run_helpers import traceable
 import requests
 from datetime import datetime
+import weave
 
 dotenv.load_dotenv()
 
@@ -17,12 +18,41 @@ if os.getenv('IS_CLOUD') == 'true':
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai_client = OpenAI()
 
-import chromadb
-chroma_client = chromadb.PersistentClient('./chroma.db')
+# import chromadb
+# chroma_client = chromadb.PersistentClient('./chroma.db')
 
 
 def query_articles(query_text, n_results=7):
-    q = chroma_client.get_collection("stratechery_articles").query(query_texts=query_text, n_results=n_results)
+    q = {
+        'documents': [
+            [
+                "Document 1 text", 
+                "Document 2 text", 
+                "Document 3 text", 
+                "Document 4 text", 
+                "Document 5 text", 
+                "Document 6 text", 
+                "Document 7 text"
+            ]
+        ],
+        'distances': [
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7] # Example distances, assuming lower means more relevant
+        ],
+        'metadatas': [
+            [
+            {"title": "Title 1", "author": "Author 1", "year": 2021, "url": "https://example.com/document1"},
+            {"title": "Title 2", "author": "Author 2", "year": 2022, "url": "https://example.com/document2"},
+            {"title": "Title 3", "author": "Author 3", "year": 2023, "url": "https://example.com/document3"},
+            {"title": "Title 4", "author": "Author 4", "year": 2024, "url": "https://example.com/document4"},
+            {"title": "Title 5", "author": "Author 5", "year": 2025, "url": "https://example.com/document5"},
+            {"title": "Title 6", "author": "Author 6", "year": 2026, "url": "https://example.com/document6"},
+            {"title": "Title 7", "author": "Author 7", "year": 2027, "url": "https://example.com/document7"}
+        ]
+        ],
+        'ids': [
+            ["1", "2", "3", "4", "5", "6", "7"] # Example IDs
+        ]
+    }
     return q
 
 
@@ -85,7 +115,7 @@ TOOLS = [
 ]
 
 
-@traceable(run_type="llm")
+@weave.op()
 def call_openai(messages, model="gpt-3.5-turbo"):
     return openai_client.chat.completions.create(
         model=model,
@@ -154,7 +184,7 @@ def combine_summaries_and_chunks(summaries, chunks):
     return "\n".join(result).strip("-----\n")
 
 
-@traceable(run_type="chain")
+@weave.op()
 def create_chat_completion_with_rag(query_text, message_chain, openai_model):
     message_chain.append({"role": "user", "content": query_text})
 
